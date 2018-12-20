@@ -6,6 +6,8 @@ import { Packages } from "/lib/collections";
 import Reaction from "/imports/plugins/core/core/server/Reaction";
 import { translateRegistry } from "/lib/api";
 
+const IDENTITY_PROVIDER_PLUGIN_NAME = "reaction-hydra-oauth";
+
 // for transforming packages before publication sets some defaults for the client and adds i18n while checking
 // privileged settings for enabled status.
 function transform(doc, userId) {
@@ -70,6 +72,10 @@ function transform(doc, userId) {
     Object.assign(packageSettings, registrySettings);
     doc.settings = packageSettings;
   }
+  // TODO: Update when envalid is setup
+  if (doc.name === IDENTITY_PROVIDER_PLUGIN_NAME && process.env.IDENTITY_PROVIDER_MODE === "true") {
+    doc.identityProviderMode = true;
+  }
 
   return doc;
 }
@@ -112,10 +118,16 @@ Meteor.publish("Packages", function (shopId) {
       ], Roles.GLOBAL_GROUP))) {
         options = {};
       }
+
+      const query = { shopId: myShopId };
+
+      // This is to ensure only needed Identity-provider-related routes are published
+      if (process.env.IDENTITY_PROVIDER_MODE === "true") { // TODO: Update when envalid is setup
+        query.name = IDENTITY_PROVIDER_PLUGIN_NAME;
+      }
+
       // observe and transform Package registry adds i18n and other meta data
-      const observer = Packages.find({
-        shopId: myShopId
-      }, options).observe({
+      const observer = Packages.find(query, options).observe({
         added(doc) {
           self.added("Packages", doc._id, transform(doc, self.userId));
         },
