@@ -587,7 +587,7 @@ Router.initPackageRoutes = (options) => {
 
   const enabledPackageRoutes = getEnabledPackageRoutes(ReactionLayout, packages);
   const updatedPackageRoutes = addRoutePrefixToPackageRoutes(enabledPackageRoutes);
-  const allRouteDefinitions = [...defaultRouteDefinitions, ...updatedPackageRoutes];
+  const allRouteDefinitions = [...updatedPackageRoutes, ...defaultRouteDefinitions];
 
   // Uniq-ify routes
   // Take all route definitions in the order that were received, and reverse it.
